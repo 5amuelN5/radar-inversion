@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Radar a seis meses</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -56,7 +60,10 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
+  margin: 0;
+  overflow-wrap: break-word;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--f-body);
@@ -119,7 +126,7 @@ details:not([open]) .chev .b { display: none; }
 .dates dd { margin: 0; }
 .price { font-size: 13px; color: var(--muted); margin: 0; }
 .src { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
-.src a { color: var(--accent); }
+.src a { color: var(--accent); overflow-wrap: anywhere; }
 footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 .empty { padding: 20px; text-align: center; color: var(--muted); }
 @media (prefers-reduced-motion: no-preference) { details.card { transition: border-color .15s; } details.card[open] { border-color: var(--accent); } }
