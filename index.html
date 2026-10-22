@@ -1,0 +1,345 @@
+<title>Radar a seis meses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una sola columna de tarjetas desplegables, pensada para leer con el pulgar. Cada tarjeta muestra veredicto y motivo principal; el detalle se abre al tocar. */
+:root {
+  --bg: #F2F5F5;
+  --surface: #FFFFFF;
+  --ink: #12201F;
+  --muted: #566867;
+  --line: #D8E0E0;
+  --accent: #0B5A63;
+  --accent-soft: #DCEEF0;
+  --up: #17744A;
+  --up-soft: #DDF2E6;
+  --flat: #7A5C0B;
+  --flat-soft: #F6EBC9;
+  --down: #A8342A;
+  --down-soft: #F8DDD9;
+  --f-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1415;
+    --surface: #152021;
+    --ink: #E5EEED;
+    --muted: #94A7A6;
+    --line: #263536;
+    --accent: #62C3CB;
+    --accent-soft: #14343A;
+    --up: #55CB8A;
+    --up-soft: #153525;
+    --flat: #DDB84F;
+    --flat-soft: #3A3115;
+    --down: #F28678;
+    --down-soft: #40201C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1415;
+  --surface: #152021;
+  --ink: #E5EEED;
+  --muted: #94A7A6;
+  --line: #263536;
+  --accent: #62C3CB;
+  --accent-soft: #14343A;
+  --up: #55CB8A;
+  --up-soft: #153525;
+  --flat: #DDB84F;
+  --flat-soft: #3A3115;
+  --down: #F28678;
+  --down-soft: #40201C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+header { display: flex; flex-direction: column; gap: 8px; }
+.kicker { font-family: var(--f-data); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-size: 32px; line-height: 1.1; margin: 0; font-weight: 700; text-wrap: balance; letter-spacing: -.01em; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+.note { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; color: var(--ink); }
+.note b { font-weight: 600; }
+.controls { display: flex; flex-direction: column; gap: 10px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg button {
+  font: inherit; font-size: 13px; font-weight: 500; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 0; cursor: pointer; min-width: 0;
+}
+.seg button .n { font-family: var(--f-data); font-size: 18px; font-weight: 500; line-height: 1.2; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg button:focus-visible, .toggle:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.row .count { font-size: 13px; color: var(--muted); }
+.toggle { font: inherit; font-size: 13px; color: var(--accent); background: none; border: 0; padding: 6px 0; cursor: pointer; font-weight: 500; }
+.list { display: flex; flex-direction: column; gap: 10px; }
+details.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+details.card summary { list-style: none; cursor: pointer; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+details.card summary::-webkit-details-marker { display: none; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.id { min-width: 0; }
+.tick { font-family: var(--f-data); font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.name { font-family: var(--f-display); font-size: 19px; font-weight: 600; line-height: 1.2; }
+.sector { font-size: 12.5px; color: var(--muted); }
+.verdict { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.pill { font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.up .pill { background: var(--up-soft); color: var(--up); }
+.flat .pill { background: var(--flat-soft); color: var(--flat); }
+.down .pill { background: var(--down-soft); color: var(--down); }
+.conf { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: block; }
+.dots i.on { background: var(--ink); }
+.resumen { margin: 0; font-size: 14.5px; }
+.chev { font-size: 12px; color: var(--accent); font-weight: 500; }
+details[open] .chev .a { display: none; }
+details:not([open]) .chev .b { display: none; }
+.body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.body h3 { margin: 0 0 4px; font-family: var(--f-data); font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.body ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.body li { padding-left: 2px; }
+.cols { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 640px) { .cols { grid-template-columns: 1fr 1fr; } }
+.dates { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+.dates dt { font-family: var(--f-data); font-size: 12.5px; color: var(--accent); white-space: nowrap; }
+.dates dd { margin: 0; }
+.price { font-size: 13px; color: var(--muted); margin: 0; }
+.src { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.src a { color: var(--accent); }
+footer { font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.empty { padding: 20px; text-align: center; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { details.card { transition: border-color .15s; } details.card[open] { border-color: var(--accent); } }
+
+.sec-h { font-family: var(--f-display); font-size: 21px; margin: 0; font-weight: 700; }
+.sec-s { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.news { display: flex; flex-direction: column; gap: 10px; }
+.nitem { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.nitem.up { border-left-color: var(--up); } .nitem.down { border-left-color: var(--down); }
+.nmeta { font-family: var(--f-data); font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.nitem h3 { margin: 0; font-family: var(--f-display); font-size: 17px; line-height: 1.25; font-weight: 600; text-wrap: balance; }
+.nitem p { margin: 0; }
+.nitem .lect { font-size: 13.5px; background: var(--accent-soft); border-radius: 8px; padding: 8px 10px; }
+.vlist { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.vlist li { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; padding: 0; }
+.st { font-family: var(--f-data); font-size: 11px; font-weight: 500; border-radius: 6px; padding: 2px 6px; white-space: nowrap; margin-top: 2px; }
+.st.ok { background: var(--up-soft); color: var(--up); }
+.st.par { background: var(--flat-soft); color: var(--flat); }
+.st.no { background: var(--down-soft); color: var(--down); }
+.st.nv { background: var(--accent-soft); color: var(--accent); }
+.fund { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 14px; }
+.fund dt { color: var(--muted); } .fund dd { margin: 0; font-family: var(--f-data); font-size: 13px; text-align: right; overflow-wrap: anywhere; }
+.counter { background: var(--flat-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+details.disc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+details.disc summary { cursor: pointer; font-weight: 500; font-size: 14px; }
+details.disc ul { margin: 10px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Actualizado el 22 oct 2026 · escaneo diario</div>
+    <h1>Radar a seis meses</h1>
+    <p class="lede">Oportunidades que la herramienta detecta cada día leyendo las noticias de todos los sectores. Solo salen las que resisten la verificación con datos primarios: probable subida o probable caída hasta abril de 2027. Toca una tarjeta para ver motivos y comprobaciones.</p>
+    <div class="note"><b>Cómo leerlo.</b> El veredicto es la tendencia más probable según las noticias y los resultados publicados, no una predicción ni una recomendación. La confianza dice cuánto me fío. No soy asesor financiero.</div>
+  </header>
+
+  <section aria-label="Noticias del día">
+    <h2 class="sec-h">Noticias relevantes</h2>
+    <p class="sec-s" id="nsub"></p>
+    <div class="news" id="news"></div>
+  </section>
+
+  <section class="controls" aria-label="Filtros">
+    <h2 class="sec-h">Oportunidades detectadas</h2>
+    <div class="seg" id="seg"></div>
+    <div class="row">
+      <span class="count" id="count"></span>
+      <button class="toggle" id="toggle" type="button">Abrir todas</button>
+    </div>
+  </section>
+
+  <main class="list" id="list"></main>
+
+  <footer>
+    <span>Los precios llevan fecha porque proceden de páginas públicas con retrasos distintos. Compruébalos antes de operar.</span>
+    <span>Se renueva cada mañana: si no hay noticias relevantes, solo cambia la fecha del último escaneo.</span>
+  </footer>
+</div>
+
+<script>
+const SCAN = { fecha: "22 oct 2026", estado: "Primer escaneo tras la verificación." };
+
+// Noticias nuevas: más recientes primero. v: up | down | flat (efecto probable en las empresas que menciona la lectura).
+const NEWS = [
+  {
+    d: "12–15 oct 2026", sec: "Litio", v: "down",
+    h: "El litio cae un 14% en una semana tras el posible recorte chino a las exportaciones de híbridos a la UE",
+    a: "Los futuros de carbonato de litio en Guangzhou cayeron un 11,8% el 12 de octubre hasta unos 104.700 yuanes por tonelada, el mínimo desde diciembre de 2025, y volvieron a tocar los 100.000 el 15. La causa es que la UE plantea limitar las exportaciones chinas de híbridos a unas 350.000 unidades el primer año (unas 800.000 en 2026), lo que enfría la demanda de 2027. Los términos aún no están publicados. A la vez se habla de reabrir la mina Jianxiawo de CATL, aunque no hay reapertura confirmada.",
+    l: "Lectura: Albemarle pasó de ~118 a ~92 USD y ya descuenta el precio actual del litio, pero no uno cercano a 10 USD/kg. Sin ventaja clara; la guía del 4 nov decidirá.",
+    src: [["Mining Weekly, 12 oct", "https://www.miningweekly.com/article/chinese-lithium-prices-tumble-to-nearly-10-month-low-on-demand-concerns-2026-10-12"], ["Oilprice, 15 oct", "https://oilprice.com/Latest-Energy-News/World-News/Lithium-Prices-Plunge-as-EU-China-Trade-Deal-Sparks-Demand-Fears.amp.html"]]
+  },
+  {
+    d: "14–15 oct 2026", sec: "Espacio", v: "flat",
+    h: "Rocket Lab retrasa el primer vuelo de Neutron a 2027",
+    a: "La empresa comunicó el 14 de octubre defectos de fabricación y aire atrapado en el domo delantero de composite del depósito. No da fecha nueva. La acción cayó cerca de un 10% y KeyBanc, TD Cowen y Clear Street recortaron objetivos. La compra de Iridium (~8.000 M USD) ya está financiada: en septiembre vendió acciones por ~1.944 M USD y canceló el préstamo puente.",
+    l: "Lectura: el retraso ya está en precio (-20% desde el máximo), pero a ~37 veces ventas la acción sigue asumiendo que Neutron funciona. Descartada por ahora: el riesgo es simétrico.",
+    src: [["8-K de la empresa, 14 oct", "https://www.sec.gov/Archives/edgar/data/0001819994/000181999426000067/rklb-10142026ex991.htm"], ["Satellite Today, 15 oct", "https://www.satellitetoday.com/launch/2026/10/15/rocket-labs-neutron-debut-now-delayed-to-2027/"]]
+  },
+  {
+    d: "Calendario próximo", sec: "Resultados", v: "flat",
+    h: "Semana de resultados: Cameco el 30 oct, BridgeBio el 29 oct, Freeport el 27 oct, Albemarle el 4 nov",
+    a: "Estas publicaciones son las que pueden confirmar o romper las dos tesis vigentes. En BridgeBio, un crecimiento secuencial de Attruby claramente inferior al 23% del segundo trimestre sería negativo. En Cameco, importan la guía de 2026 y Westinghouse.",
+    l: "Lectura: tras cada resultado, la tesis se revisa en el siguiente escaneo.",
+    src: [["Cameco, conferencia T3", "https://www.cameco.com/invest/events-presentations/2026-q3-conference-call-and-webcast"]]
+  }
+];
+
+const DATA = [
+  {
+    t: "BBIO", n: "BridgeBio Pharma", s: "Farma / Biotech", v: "up", c: "media",
+    r: "Su fármaco principal crece cada trimestre y tiene tres decisiones de la FDA con revisión prioritaria en seis meses. Lo bueno está en parte descontado, por eso la confianza es media.",
+    pro: [
+      "Attruby facturó 222,4 M USD en el segundo trimestre (71,5 M hace un año) y sube un 23% sobre el trimestre anterior.",
+      "BBP-418 tiene decisión de la FDA el 27 de noviembre, con revisión prioritaria y sin comité asesor. Infigratinib tiene la suya el 4 de febrero de 2027 y encaleret el 8 de mayo de 2027.",
+      "Con las preferentes de 1.000 M USD, la caja pro forma es de unos 1.720 M USD.",
+      "Cotiza un 35% por debajo del objetivo medio de los analistas (104 USD, rango 81–156)."
+    ],
+    con: [
+      "Casi toda la facturación sale de un solo producto (180,6 de 194,5 M USD en el primer trimestre). Raymond James lo rebajó por riesgo de pagadores.",
+      "Valor de empresa de ~15.100 M USD, unas 21 veces ventas, con ~2.480 M USD en convertibles y 1.000 M USD de preferentes que se convierten a 137,79 USD.",
+      "Las aprobaciones son el escenario base: la reacción puede ser corta o contraria (vender la noticia).",
+      "Morgan Stanley bajó su objetivo de 97 a 87 USD el 21 de octubre."
+    ],
+    ver: [
+      ["ok", "Ingresos del T2, pérdida operativa de 107,1 M USD, PDUFA de BBP-418 y encaleret, preferentes y conversión: confirmados en el 8-K."],
+      ["par", "La caja de ~1.700 M es pro forma: la reportada a 30 de junio era 720,2 M USD y excluye las preferentes."],
+      ["par", "El 23% es crecimiento trimestral, no anual, y lo dijo el CEO en la llamada."],
+      ["no", "El precio de 64,94 USD era el cierre del 14 oct, no del 15. El 22 oct cotiza ~68 USD."],
+      ["no", "Infigratinib ya no está pendiente de aceptación: la FDA lo aceptó el 6 oct con revisión prioritaria."]
+    ],
+    fund: [["Precio", "68,19 USD (22 oct)"], ["Capitalización", "13.330 M USD"], ["Valor de empresa", "~15.100 M USD"], ["EV / ventas", "~21x"], ["Objetivo medio", "104,40 USD"]],
+    cx: "Qué la rompería: Attruby con un crecimiento trimestral claramente inferior al 23% el 29 oct, una carta de rechazo o retraso de BBP-418, o cambios de reembolso.",
+    f: [["29 oct", "Resultados del tercer trimestre"], ["27 nov", "Decisión FDA para BBP-418"], ["4 feb 2027", "Decisión FDA para infigratinib"], ["8 may 2027", "Decisión FDA para encaleret (fuera de los seis meses)"]],
+    p: "Precio de referencia: 68,19 USD el 22 oct 2026 (intradía); cierre del 21 oct, 67,74 USD.",
+    src: [["Resultados T2 (8-K)", "https://www.sec.gov/Archives/edgar/data/0001743881/000174388126000026/bbio-20260630xex991.htm"], ["Infigratinib aceptado", "https://finviz.com/news/399114/bridgebio-announces-fda-acceptance-and-priority-review-of-nda-for-oral-infigratinib-for-children-with-achondroplasia"], ["Precio y objetivos", "https://stockanalysis.com/stocks/BBIO/"]]
+  },
+  {
+    t: "CCJ", n: "Cameco", s: "Uranio", v: "up", c: "baja",
+    r: "El uranio a largo plazo está en máximos de 18 años y la acción ha caído un 36% desde su máximo, cerca de su mínimo anual. Pero sigue cara en múltiplos, así que la confianza es baja.",
+    pro: [
+      "El precio de contratos a largo plazo es de 97 USD/lb (TradeTech; Cameco publica 96,50), el más alto desde 2007. El spot ronda 89,9 USD/lb.",
+      "La acción cotiza ~78,6 USD, casi en el mínimo de 52 semanas (77,70), mientras el uranio sube: el mercado descuenta poco.",
+      "Mantiene la guía de producción de 2026 (19,5–21,5 M lb) y tiene contratos de más de 28 M lb al año de media en cinco años.",
+      "Catalizadores: marco EE. UU.–Corea del Sur para hasta ocho reactores Westinghouse (30 sep) y acuerdo con Amazon (9 oct)."
+    ],
+    con: [
+      "Cotiza a ~25 veces el EBITDA de 2025 y ~77 veces beneficio a futuro.",
+      "El segundo trimestre falló el consenso: ventas -18%, producción -15%, EBITDA ajustado de uranio -28%, y Westinghouse pasó de beneficio a pérdida.",
+      "Sus beneficios dependen de un precio realizado que sube despacio, no del spot.",
+      "El objetivo medio de analistas (148 USD) no coincide entre fuentes (otra cita ~126 USD)."
+    ],
+    ver: [
+      ["ok", "Ventas de 7,1 M lb, producción de 3,9 M lb, EBITDA de uranio, guía de 2026 y contratos: confirmados en el 6-K y la nota del T2."],
+      ["no", "Las cifras en dólares eran en realidad dólares canadienses (ingresos de uranio 659 M, EBITDA 252 M, caja 1.100 M, deuda 1.000 M)."],
+      ["no", "El precio de 87,47 USD del 5 oct no se pudo verificar. El cierre del 21 oct fue 81,99 y el 22 oct cotiza ~78,6 USD."],
+      ["par", "El uranio a largo plazo es 97 USD según TradeTech y 96,50 según Cameco."],
+      ["ok", "Resultados del tercer trimestre el 30 de octubre antes de la apertura (no era estimado)."]
+    ],
+    fund: [["Precio", "~78,6 USD (22 oct)"], ["Capitalización", "35.700 M USD"], ["Caja / deuda (30 jun)", "C$1.100 M / C$1.000 M"], ["EBITDA aj. 2025", "C$1.900 M"], ["Objetivo medio", "148,52 USD"]],
+    cx: "Qué la rompería: una guía de 2026 recortada o una pérdida mayor en Westinghouse el 30 oct, o que el uranio a largo plazo vuelva por debajo de ~90 USD/lb.",
+    f: [["30 oct", "Resultados del tercer trimestre (antes de la apertura, llamada a las 8:00 ET)"]],
+    p: "Precio de referencia: ~78,6 USD el 22 oct 2026 (intradía); cierre del 21 oct, 81,99 USD.",
+    src: [["Nota de resultados T2", "https://www.cameco.com/sites/default/files/documents/2026-Q2-News-Release.pdf"], ["Precio del uranio (Cameco)", "https://www.cameco.com/invest/markets/uranium-price"], ["Largo plazo en máximos", "https://uraniumunleashed.substack.com/p/the-long-term-price-hits-an-18-year"]]
+  }
+];
+
+const LABEL = { up: "▲ Subida probable", down: "▼ Caída probable" };
+const SEGS = [["all", "Todas"], ["up", "Subida"], ["down", "Caída"]];
+const CONF = { alta: 3, media: 2, baja: 1 };
+const ST = { ok: "Confirmado", par: "Parcial", no: "Corregido", nv: "No verificado" };
+let filter = "all";
+try { filter = localStorage.getItem("radar6m-filter") || "all"; } catch (e) {}
+if (!SEGS.some(function (s) { return s[0] === filter; })) filter = "all";
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function links(a) { return a.map(function (x) { return '<a href="' + x[1] + '" target="_blank" rel="noopener">' + esc(x[0]) + "</a>"; }).join(""); }
+
+function card(d, open) {
+  const dots = [1, 2, 3].map(function (i) { return '<i class="' + (i <= CONF[d.c] ? "on" : "") + '"></i>'; }).join("");
+  const li = function (a) { return a.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join(""); };
+  const dates = d.f.map(function (x) { return "<dt>" + esc(x[0]) + "</dt><dd>" + esc(x[1]) + "</dd>"; }).join("");
+  const ver = d.ver.map(function (x) { return '<li><span class="st ' + x[0] + '">' + ST[x[0]] + "</span><span>" + esc(x[1]) + "</span></li>"; }).join("");
+  const fund = d.fund.map(function (x) { return "<dt>" + esc(x[0]) + "</dt><dd>" + esc(x[1]) + "</dd>"; }).join("");
+  return '<details class="card ' + d.v + '"' + (open ? " open" : "") + ">" +
+    "<summary>" +
+      '<div class="top"><div class="id"><div class="tick">' + esc(d.t) + '</div><div class="name">' + esc(d.n) + '</div><div class="sector">' + esc(d.s) + "</div></div>" +
+      '<div class="verdict"><span class="pill">' + LABEL[d.v] + '</span><span class="conf">Confianza ' + d.c + ' <span class="dots">' + dots + "</span></span></div></div>" +
+      '<p class="resumen">' + esc(d.r) + "</p>" +
+      '<span class="chev"><span class="a">Ver motivos y comprobaciones</span><span class="b">Ocultar</span></span>' +
+    "</summary>" +
+    '<div class="body">' +
+      '<div class="cols"><div><h3>A favor</h3><ul>' + li(d.pro) + "</ul></div><div><h3>En contra</h3><ul>" + li(d.con) + "</ul></div></div>" +
+      "<div><h3>Verificación con fuentes primarias</h3><ul class=\"vlist\">" + ver + "</ul></div>" +
+      "<div><h3>Análisis de fundamentales</h3><dl class=\"fund\">" + fund + "</dl></div>" +
+      '<div class="counter">' + esc(d.cx) + "</div>" +
+      "<div><h3>Fechas clave</h3><dl class=\"dates\">" + dates + "</dl></div>" +
+      '<p class="price">' + esc(d.p) + "</p>" +
+      '<div><h3>Fuentes</h3><div class="src">' + links(d.src) + "</div></div>" +
+    "</div></details>";
+}
+
+function renderNews() {
+  document.getElementById("nsub").textContent = "Último escaneo: " + SCAN.fecha + ". " + SCAN.estado;
+  document.getElementById("news").innerHTML = NEWS.length ? NEWS.map(function (n) {
+    return '<article class="nitem ' + n.v + '"><div class="nmeta">' + esc(n.d) + " · " + esc(n.sec) + "</div><h3>" + esc(n.h) + "</h3><p>" + esc(n.a) + '</p><p class="lect">' + esc(n.l) + '</p><div class="src">' + links(n.src) + "</div></article>";
+  }).join("") : '<div class="empty">Hoy no hay noticias que cambien una tesis.</div>';
+}
+
+function render() {
+  const items = DATA.filter(function (d) { return filter === "all" || d.v === filter; });
+  document.getElementById("list").innerHTML = items.length
+    ? items.map(function (d, i) { return card(d, i === 0 && filter === "all"); }).join("")
+    : '<div class="empty">Ahora mismo no hay empresas con este veredicto.</div>';
+  document.getElementById("count").textContent = items.length + (items.length === 1 ? " empresa" : " empresas");
+  document.getElementById("seg").innerHTML = SEGS.map(function (s) {
+    const n = s[0] === "all" ? DATA.length : DATA.filter(function (d) { return d.v === s[0]; }).length;
+    return '<button type="button" data-f="' + s[0] + '" aria-pressed="' + (filter === s[0]) + '"><span class="n">' + n + "</span>" + s[1] + "</button>";
+  }).join("");
+  syncToggle();
+}
+
+function syncToggle() {
+  const all = Array.prototype.slice.call(document.querySelectorAll("details.card"));
+  const allOpen = all.length > 0 && all.every(function (x) { return x.open; });
+  document.getElementById("toggle").textContent = allOpen ? "Cerrar todas" : "Abrir todas";
+}
+
+document.getElementById("seg").addEventListener("click", function (e) {
+  const b = e.target.closest("button");
+  if (!b) return;
+  filter = b.getAttribute("data-f");
+  try { localStorage.setItem("radar6m-filter", filter); } catch (err) {}
+  render();
+});
+document.getElementById("toggle").addEventListener("click", function () {
+  const all = Array.prototype.slice.call(document.querySelectorAll("details.card"));
+  const allOpen = all.every(function (x) { return x.open; });
+  all.forEach(function (x) { x.open = !allOpen; });
+  syncToggle();
+});
+document.getElementById("list").addEventListener("toggle", syncToggle, true);
+renderNews(); render();
+</script>
